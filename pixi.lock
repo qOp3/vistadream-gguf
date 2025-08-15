@@ -463,7 +463,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/7f/66/b15ce62552d84bbfcec9a4873ab79d993a1dd4edb922cbfccae192bd5b5f/jaraco.classes-3.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ff/db/0c52c4cf5e4bd9f5d7135ec7669a3a767af21b3a308e1ed3674881e52b62/jaraco.context-6.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f3/fd/179a20f832824514df39a90bb0e5372b314fea99f217f5ab942b10a8a4e8/jaraco_functools-4.2.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/c9/b9/281e10e2d967ea5e481683eaec99f55ac5a61085ee60551c36942ef32bef/jaxtyping-0.3.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/db/7e/da7b57a1f3af7303a0f3c8594d820fc0d3a9bbe3810a357eb21eb166e76b/jaxtyping-0.2.38-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b2/a3/e137168c9c44d18eff0376253da9f1e9234d0239e0ee230d2fee6cea8e55/jeepney-0.9.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7a/9b/cbf48a399c78e749c23aa33d51ac97c8f35154846b470907db8d2a40e437/jupyter_ui_poll-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/43/6a/ca128561b22b60bd5a0c4ea26649e68c8556b82bc70a0c396eebc977fe86/jupyterlab_widgets-3.0.15-py3-none-any.whl
@@ -475,7 +475,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/98/8e/f98332248aad102511bea4ae19c0ddacd2f0a994f3ca4c82b7a369e0af8b/mmengine-0.10.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d7/96/bcb5141eae24474d80b8157b0c3055d25fa75f9804d4abb4a514695bbba9/moderngl-5.12.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: git+https://github.com/microsoft/MoGe.git?rev=6b8b43db567ca4b08615c39b42cffd6c76cada29#6b8b43db567ca4b08615c39b42cffd6c76cada29
-      - pypi: git+https://github.com/pablovela5620/monoprior.git#66f323ed7afcc5787228cdfb661eec571527585e
+      - pypi: git+https://github.com/pablovela5620/monoprior.git#55d550fba642c9107d14e9b52513c9d43eb5a439
       - pypi: https://files.pythonhosted.org/packages/2b/9f/7ba6f94fc1e9ac3d2b853fdff3035fb2fa5afbed898c4a72b8a020610594/more_itertools-10.7.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/bf/b6/5f922792be93b82ec6b5f270bbb1ef031fd0622847070bbcf9da816502cc/multiprocess-0.70.18-py312-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/79/7b/2c79738432f5c924bef5071f933bcc9efd0473bac3b4aa584a6f7c1c8df8/mypy_extensions-1.1.0-py3-none-any.whl
@@ -514,7 +514,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/6a/23/8146aad7d88f4fcb3a6218f41a60f6c2d4e3a72de72da1825dc7c8f7877c/semantic_version-2.10.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e0/f9/0595336914c5619e5f28a1fb793285925a8cd4b432c9da0a987836c7f822/shellingham-1.5.4-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/74/03/3271b7bb470fbab4adf5bd30b0d32143909d96f3608d815b447357f47f2b/shtab-1.7.2-py3-none-any.whl
-      - pypi: git+https://github.com/pablovela5620/simplecv.git?rev=10780d8a1d6d3e58b5f8966b62f71f224b812a3f#10780d8a1d6d3e58b5f8966b62f71f224b812a3f
+      - pypi: git+https://github.com/pablovela5620/simplecv.git?rev=a75e2769bfab5d098df8d0e17112f6242f73d4ee#a75e2769bfab5d098df8d0e17112f6242f73d4ee
       - pypi: https://files.pythonhosted.org/packages/f7/1f/b876b1f83aef204198a42dc101613fefccb32258e5428b5f9259677864b4/starlette-0.47.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/4f/bd/de8d508070629b6d84a30d01d57e4a65c69aa7f5abe7560b8fad3b50ea59/termcolor-3.1.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/dc/74/661c63260cccf19ed5932e8b3f22f95ecd8bb34b9d9e6af9e1e7b961f254/timm-1.0.19-py3-none-any.whl
@@ -534,10 +534,10 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/5c/23/c7abc0ca0a1526a0774eca151daeb8de62ec457e77262b66b359c3c7679e/tzdata-2025.2-py2.py3-none-any.whl
       - pypi: git+https://github.com/EasternJournalist/utils3d.git?rev=c5daf6f6c244d251f252102d09e9b7bcef791a38#c5daf6f6c244d251f252102d09e9b7bcef791a38
       - pypi: https://files.pythonhosted.org/packages/d2/e2/dc81b1bd1dcfe91735810265e9d26bc8ec5da45b4c0f6237e286819194c3/uvicorn-0.35.0-py3-none-any.whl
+      - pypi: git+https://github.com/pablovela5620/vggt.git?rev=5ed6ec88a951f27959f73bc72eb4b6dc7a028b0c#5ed6ec88a951f27959f73bc72eb4b6dc7a028b0c
       - pypi: https://files.pythonhosted.org/packages/8d/96/04e7b441807b26b794da5b11e59ed7f83b2cf8af202bd7eba8ad2fa6046e/wadler_lindig-0.1.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/14/8f/aa61f528fba38578ec553c145857a181384c72b98156f858ca5c8e82d9d3/websockets-15.0.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/ca/51/5447876806d1088a0f8f71e16542bf350918128d0a69437df26047c8e46f/widgetsnbextension-4.0.14-py3-none-any.whl
-      - pypi: git+https://github.com/facebookresearch/xformers.git?rev=main#635a8ab2b37e62a432b89071acafe6bc58d508c7
       - pypi: https://files.pythonhosted.org/packages/37/81/6acd6601f61e31cfb8729d3da6d5df966f80f374b78eff83760714487338/yapf-0.43.0-py3-none-any.whl
       - pypi: ./
   dev:
@@ -1008,7 +1008,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/7f/66/b15ce62552d84bbfcec9a4873ab79d993a1dd4edb922cbfccae192bd5b5f/jaraco.classes-3.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ff/db/0c52c4cf5e4bd9f5d7135ec7669a3a767af21b3a308e1ed3674881e52b62/jaraco.context-6.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f3/fd/179a20f832824514df39a90bb0e5372b314fea99f217f5ab942b10a8a4e8/jaraco_functools-4.2.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/c9/b9/281e10e2d967ea5e481683eaec99f55ac5a61085ee60551c36942ef32bef/jaxtyping-0.3.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/db/7e/da7b57a1f3af7303a0f3c8594d820fc0d3a9bbe3810a357eb21eb166e76b/jaxtyping-0.2.38-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b2/a3/e137168c9c44d18eff0376253da9f1e9234d0239e0ee230d2fee6cea8e55/jeepney-0.9.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7a/9b/cbf48a399c78e749c23aa33d51ac97c8f35154846b470907db8d2a40e437/jupyter_ui_poll-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/43/6a/ca128561b22b60bd5a0c4ea26649e68c8556b82bc70a0c396eebc977fe86/jupyterlab_widgets-3.0.15-py3-none-any.whl
@@ -1020,7 +1020,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/98/8e/f98332248aad102511bea4ae19c0ddacd2f0a994f3ca4c82b7a369e0af8b/mmengine-0.10.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d7/96/bcb5141eae24474d80b8157b0c3055d25fa75f9804d4abb4a514695bbba9/moderngl-5.12.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: git+https://github.com/microsoft/MoGe.git?rev=6b8b43db567ca4b08615c39b42cffd6c76cada29#6b8b43db567ca4b08615c39b42cffd6c76cada29
-      - pypi: git+https://github.com/pablovela5620/monoprior.git#66f323ed7afcc5787228cdfb661eec571527585e
+      - pypi: git+https://github.com/pablovela5620/monoprior.git#55d550fba642c9107d14e9b52513c9d43eb5a439
       - pypi: https://files.pythonhosted.org/packages/2b/9f/7ba6f94fc1e9ac3d2b853fdff3035fb2fa5afbed898c4a72b8a020610594/more_itertools-10.7.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/bf/b6/5f922792be93b82ec6b5f270bbb1ef031fd0622847070bbcf9da816502cc/multiprocess-0.70.18-py312-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/79/7b/2c79738432f5c924bef5071f933bcc9efd0473bac3b4aa584a6f7c1c8df8/mypy_extensions-1.1.0-py3-none-any.whl
@@ -1058,7 +1058,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/6a/23/8146aad7d88f4fcb3a6218f41a60f6c2d4e3a72de72da1825dc7c8f7877c/semantic_version-2.10.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e0/f9/0595336914c5619e5f28a1fb793285925a8cd4b432c9da0a987836c7f822/shellingham-1.5.4-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/74/03/3271b7bb470fbab4adf5bd30b0d32143909d96f3608d815b447357f47f2b/shtab-1.7.2-py3-none-any.whl
-      - pypi: git+https://github.com/pablovela5620/simplecv.git?rev=10780d8a1d6d3e58b5f8966b62f71f224b812a3f#10780d8a1d6d3e58b5f8966b62f71f224b812a3f
+      - pypi: git+https://github.com/pablovela5620/simplecv.git?rev=a75e2769bfab5d098df8d0e17112f6242f73d4ee#a75e2769bfab5d098df8d0e17112f6242f73d4ee
       - pypi: https://files.pythonhosted.org/packages/f7/1f/b876b1f83aef204198a42dc101613fefccb32258e5428b5f9259677864b4/starlette-0.47.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/4f/bd/de8d508070629b6d84a30d01d57e4a65c69aa7f5abe7560b8fad3b50ea59/termcolor-3.1.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/dc/74/661c63260cccf19ed5932e8b3f22f95ecd8bb34b9d9e6af9e1e7b961f254/timm-1.0.19-py3-none-any.whl
@@ -1078,10 +1078,10 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/5c/23/c7abc0ca0a1526a0774eca151daeb8de62ec457e77262b66b359c3c7679e/tzdata-2025.2-py2.py3-none-any.whl
       - pypi: git+https://github.com/EasternJournalist/utils3d.git?rev=c5daf6f6c244d251f252102d09e9b7bcef791a38#c5daf6f6c244d251f252102d09e9b7bcef791a38
       - pypi: https://files.pythonhosted.org/packages/d2/e2/dc81b1bd1dcfe91735810265e9d26bc8ec5da45b4c0f6237e286819194c3/uvicorn-0.35.0-py3-none-any.whl
+      - pypi: git+https://github.com/pablovela5620/vggt.git?rev=5ed6ec88a951f27959f73bc72eb4b6dc7a028b0c#5ed6ec88a951f27959f73bc72eb4b6dc7a028b0c
       - pypi: https://files.pythonhosted.org/packages/8d/96/04e7b441807b26b794da5b11e59ed7f83b2cf8af202bd7eba8ad2fa6046e/wadler_lindig-0.1.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/14/8f/aa61f528fba38578ec553c145857a181384c72b98156f858ca5c8e82d9d3/websockets-15.0.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/ca/51/5447876806d1088a0f8f71e16542bf350918128d0a69437df26047c8e46f/widgetsnbextension-4.0.14-py3-none-any.whl
-      - pypi: git+https://github.com/facebookresearch/xformers.git?rev=main#635a8ab2b37e62a432b89071acafe6bc58d508c7
       - pypi: https://files.pythonhosted.org/packages/37/81/6acd6601f61e31cfb8729d3da6d5df966f80f374b78eff83760714487338/yapf-0.43.0-py3-none-any.whl
       - pypi: ./
 packages:
@@ -3699,19 +3699,12 @@ packages:
   - pytest-enabler>=2.2 ; extra == 'enabler'
   - pytest-mypy ; extra == 'type'
   requires_python: '>=3.9'
-- pypi: https://files.pythonhosted.org/packages/c9/b9/281e10e2d967ea5e481683eaec99f55ac5a61085ee60551c36942ef32bef/jaxtyping-0.3.2-py3-none-any.whl
+- pypi: https://files.pythonhosted.org/packages/db/7e/da7b57a1f3af7303a0f3c8594d820fc0d3a9bbe3810a357eb21eb166e76b/jaxtyping-0.2.38-py3-none-any.whl
   name: jaxtyping
-  version: 0.3.2
-  sha256: 6a020fd276226ddb5ac4f5725323843dd65e3c7e85c64fd62431e5f738c74e04
+  version: 0.2.38
+  sha256: bc209ab8ec29917b6f0c7dec4a8ea1fc276f7d94f25b71c01d1243ec2b21ae12
   requires_dist:
   - wadler-lindig>=0.1.3
-  - hippogriffe==0.2.0 ; extra == 'docs'
-  - mkdocs-include-exclude-files==0.1.0 ; extra == 'docs'
-  - mkdocs-ipynb==0.1.0 ; extra == 'docs'
-  - mkdocs-material==9.6.7 ; extra == 'docs'
-  - mkdocs==1.6.1 ; extra == 'docs'
-  - mkdocstrings[python]==0.28.3 ; extra == 'docs'
-  - pymdown-extensions==10.14.3 ; extra == 'docs'
   requires_python: '>=3.10'
 - conda: https://prefix.dev/conda-forge/noarch/jedi-0.19.2-pyhd8ed1ab_1.conda
   sha256: 92c4d217e2dc68983f724aa983cca5464dcb929c566627b26a2511159667dba8
@@ -5790,7 +5783,7 @@ packages:
   - gradio
   - utils3d @ git+https://github.com/EasternJournalist/utils3d.git@c5daf6f6c244d251f252102d09e9b7bcef791a38
   requires_python: '>=3.9'
-- pypi: git+https://github.com/pablovela5620/monoprior.git#66f323ed7afcc5787228cdfb661eec571527585e
+- pypi: git+https://github.com/pablovela5620/monoprior.git#55d550fba642c9107d14e9b52513c9d43eb5a439
   name: monopriors
   version: 0.3.2
   requires_dist:
@@ -7565,12 +7558,11 @@ packages:
   - pytest-cov ; extra == 'dev'
   - pytest-timeout ; extra == 'dev'
   requires_python: '>=3.7'
-- pypi: git+https://github.com/pablovela5620/simplecv.git?rev=10780d8a1d6d3e58b5f8966b62f71f224b812a3f#10780d8a1d6d3e58b5f8966b62f71f224b812a3f
+- pypi: git+https://github.com/pablovela5620/simplecv.git?rev=a75e2769bfab5d098df8d0e17112f6242f73d4ee#a75e2769bfab5d098df8d0e17112f6242f73d4ee
   name: simplecv
   version: 0.5.0
   requires_dist:
   - jaxtyping>=0.2.33
-  - beartype>=0.19.0
   - numpy>=2.0
   - einops>=0.8.0
   - icecream>=2.1.3
@@ -8691,10 +8683,32 @@ packages:
   - watchfiles>=0.13 ; extra == 'standard'
   - websockets>=10.4 ; extra == 'standard'
   requires_python: '>=3.9'
+- pypi: git+https://github.com/pablovela5620/vggt.git?rev=5ed6ec88a951f27959f73bc72eb4b6dc7a028b0c#5ed6ec88a951f27959f73bc72eb4b6dc7a028b0c
+  name: vggt
+  version: 0.0.1
+  requires_dist:
+  - numpy>=2
+  - pillow
+  - huggingface-hub
+  - einops
+  - safetensors
+  - opencv-python
+  - gradio==5.17.1 ; extra == 'demo'
+  - viser==0.2.23 ; extra == 'demo'
+  - tqdm ; extra == 'demo'
+  - hydra-core ; extra == 'demo'
+  - omegaconf ; extra == 'demo'
+  - opencv-python ; extra == 'demo'
+  - scipy ; extra == 'demo'
+  - onnxruntime ; extra == 'demo'
+  - requests ; extra == 'demo'
+  - trimesh ; extra == 'demo'
+  - matplotlib ; extra == 'demo'
+  requires_python: '>=3.10'
 - pypi: ./
   name: vistadream
   version: 0.1.0
-  sha256: 47a975acfd8b3b99ac0d4413e18d02d916519d4acecc8eef845ed916ab3d3df1
+  sha256: b244eb91074f7888c2e5a6c7f64f617d15e7ec5ba4645d7de4b064153fe920a0
   requires_dist:
   - gradio
   - gradio-rerun>=0.24,<0.25
@@ -8947,13 +8961,6 @@ packages:
   purls: []
   size: 51689
   timestamp: 1718844051451
-- pypi: git+https://github.com/facebookresearch/xformers.git?rev=main#635a8ab2b37e62a432b89071acafe6bc58d508c7
-  name: xformers
-  version: 0.0.32+635a8ab.d20250805
-  requires_dist:
-  - torch>=2.7
-  - numpy
-  requires_python: '>=3.9'
 - conda: https://prefix.dev/conda-forge/linux-64/xkeyboard-config-2.45-hb9d3cd8_0.conda
   sha256: a5d4af601f71805ec67403406e147c48d6bad7aaeae92b0622b7e2396842d3fe
   md5: 397a013c2dc5145a70737871aaa87e98

@@ -73,6 +73,24 @@ Run just the outpainting component with Rerun visualization:
 pixi run python tools/run_flux_outpainting.py --image-path data/office/IMG_4029.jpg --expansion-percent 0.2
 ```
 
+### Multi-Image Pose & Depth Pipeline (VGGT + MoGe)
+Estimate camera intrinsics/extrinsics, per-image depth, confidence masks, and fuse them into an (optionally downsampled) colored point cloud from a directory of images. Results stream live to a Rerun viewer.
+
+```bash
+pixi run python tools/run_multi_img.py --image-dir /path/to/image_folder
+```
+
+Connect to an already running Rerun viewer (instead of spawning a new one):
+
+```bash
+pixi run python tools/run_multi_img.py --rr-config.connect --image-dir /path/to/image_folder
+```
+
+Notes:
+- Supported image extensions: .png, .jpg, .jpeg
+- Automatically orients & recenters camera poses ("up" orientation heuristic) and logs a consolidated point cloud plus per‑view RGB, depth, filtered depth, MoGe depth, and confidence.
+- Uses VGGT (multiview geometry transformer) for joint pose & depth, robust depth confidence filtering, MoGe for refined monocular depth, and voxel downsampling to target a manageable point count.
+
 ### Gradio Web Interface
 Launch an interactive web interface for experimenting with the models:
 
@@ -83,6 +101,7 @@ pixi run python tools/gradio_app.py
 ## Key Features
 
 - **Single Image to 3D**: Complete pipeline from single image to navigable 3D scene
+- **Multi-Image Geometry**: Batch multi-view camera & depth estimation with fused colored point cloud export
 - **Memory Efficient**: Model offloading support for GPU memory management
 - **Real-time Visualization**: Integrated Rerun viewer for 3D scene inspection
 - **Training-free**: No fine-tuning required for existing diffusion models
@@ -94,6 +113,7 @@ pixi run python tools/gradio_app.py
 ├── src/vistadream/
 │   ├── api/                 # High-level pipeline APIs
 │   │   ├── flux_outpainting.py    # Outpainting-only pipeline
+│   │   ├── multi_image_pipeline.py # Multi-image pose & depth fusion (VGGT + MoGe)
 │   │   └── vistadream_pipeline.py # Full 3D reconstruction pipeline
 │   ├── flux/                # Flux diffusion model integration
 │   │   ├── cli_*.py         # Command-line interfaces
