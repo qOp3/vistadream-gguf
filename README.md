@@ -35,8 +35,10 @@ The framework integrates multiple state-of-the-art models:
 ## Installation
 
 ### Prerequisites
-- **Linux only** with **NVIDIA GPU** (CUDA 12.8)
+- **Linux only** with **NVIDIA GPU** (tested with CUDA 12.9)
 - [Pixi](https://pixi.sh/latest/#installation) package manager
+
+**NOTE:** You may need to change the **CUDA version** and **CUDA compute capability** in `pyproject.toml` (look for `cuda-version` and `TORCH_CUDA_ARCH_LIST`, respectively). You can find your CUDA version by running `nvidia-smi` or `nvcc --version` and your CUDA compute capability by running `nvidia-smi --query-gpu=compute_cap --format=csv` or check [Nvidia webiste](https://developer.nvidia.com/cuda-gpus).
 
 ### Using Pixi
 
@@ -50,14 +52,7 @@ This will automatically download the required models and run the example with th
 
 ## Usage
 
-### Full VistaDream Pipeline - 3D Scene Reconstruction ⚠️ Under Construction
-Generate a complete 3D scene from a single image with outpainting, depth estimation, and Gaussian splatting:
-
-```bash
-pixi run python tools/run_vistadream.py --image-path data/office/IMG_4029.jpg --expansion-percent 0.2 --n-frames 10
-```
-
-**Note**: The full 3D reconstruction pipeline is currently under active development. Some features may be experimental or incomplete.
+For the commands below you can add the `--help` flag to see more options, for example `pixi run python tools/run_single_img.py --help`.
 
 ### Single Image Processing
 Process a single image with depth estimation and basic 3D reconstruction:

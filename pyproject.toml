@@ -5,9 +5,8 @@ requires-python = ">= 3.11"
 version = "0.1.0"
 dependencies = [
     "gradio",
-    "gradio-rerun>=0.24,<0.25",
-    "rerun-sdk>=0.24,<0.25",
-    "rerun-notebook>=0.24.0,<0.25",
+    "gradio-rerun>=0.24,<=0.27",
+    "rerun-notebook>=0.24.0,<=0.27",
     "einops>=0.8.1,<0.9",
 ]
 
@@ -23,15 +22,16 @@ platforms = ["linux-64"]
 cuda = "12"
 
 [tool.pixi.activation]
-# required to make gsplat work on CUDA 12.8 | 5090
-env = { TORCH_CUDA_ARCH_LIST = "12.0" }
+# You can find your CUDA GPU Compute Capability using the command `nvidia-smi --query-gpu=compute_cap --format=csv` or here: https://developer.nvidia.com/cuda-gpus 
+env = { TORCH_CUDA_ARCH_LIST = "7.5 8.6 8.9 12.0 12.1" }
 
 [tool.pixi.dependencies]
 python = "3.12.*"
 cmake = ">=4.0.3,<5"
 # CUDA Build Tools
-cuda-compiler = "*"
+# You can find your CUDA version using the command `nvidia-smi` or `nvcc --version`
 cuda-version = "12.9.*"
+cuda-compiler = "*"
 cuda-cudart-dev = "*"
 cuda-crt = "*"
 libcusparse-dev = "*"
@@ -67,10 +67,7 @@ no-build-isolation = ["gsplat", "xformers"]
 
 [tool.pixi.pypi-dependencies]
 vistadream = { path = ".", editable = true }
-# torch = { version = ">=2.7.0", index = "https://download.pytorch.org/whl/cu128" }
-# torchvision = { version = ">=0.20.1", index = "https://download.pytorch.org/whl/cu128" }
-gsplat = { git = "https://github.com/nerfstudio-project/gsplat.git" }
-# torchmetrics = ">=1.7.4, <2"
+gsplat = { git = "https://github.com/nerfstudio-project/gsplat.git", rev = "2323de5905d5e90e035f792fe65bad0fedd413e7" }
 accelerate = "*"
 tqdm = "*"
 plyfile = "*"
