@@ -33,6 +33,9 @@ class FluxOutpaintingConfig:
     num_steps: int = 25
     guidance: float = 30.0
     expansion_percent: float = 0.2
+    use_quantized_flux: bool = False
+    flux_hf_model_id: str = "black-forest-labs/FLUX.1-Fill-dev"
+    flux_gguf_path: str | None = None
 
 
 def main(config: FluxOutpaintingConfig) -> None:
@@ -72,7 +75,11 @@ def main(config: FluxOutpaintingConfig) -> None:
     rr.set_time("time", sequence=0)
     rr.log("/", rr.ViewCoordinates.RDF, static=True)
 
-    flux_inpainter: FluxInpainting = FluxInpainting(FluxInpaintingConfig())
+    flux_inpainter: FluxInpainting = FluxInpainting(FluxInpaintingConfig(
+        use_quantized=config.use_quantized_flux,
+        hf_model_id=config.flux_hf_model_id,
+        gguf_path=config.flux_gguf_path,
+    ))
 
     input_image: Image.Image = Image.open(config.image_path).convert("RGB")
     # ensures image is correctly sized and processed
@@ -95,6 +102,9 @@ def main(config: FluxOutpaintingConfig) -> None:
     width, height = input_image.size
 
     outpainted_image: Image.Image = flux_inpainter(rgb_hw3=np.array(input_image), mask=np.array(mask))
+    out_path: Path = config.image_path.parent / f"{config.image_path.stem}_outpainted.png"
+    outpainted_image.save(out_path)
+    print(f"[INFO] Saved outpainted image to: {out_path.resolve()}")
     rr.log(f"{pinhole_path}/image", rr.Image(outpainted_image, color_model=rr.ColorModel.RGB))
     rgb_hw3 = np.array(outpainted_image.convert("RGB"))
     predictor: BaseRelativePredictor = get_relative_predictor("MogeV1Predictor")(device="cuda")

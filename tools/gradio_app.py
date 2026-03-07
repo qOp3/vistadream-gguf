@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import os
 import random
@@ -161,44 +162,40 @@ def get_flux_fill_res(
 def build_ui(
     device: str = "cuda" if torch.cuda.is_available() else "cpu",
     offload: bool = True,
+    use_quantized: bool = False,
+    hf_model_id: str = "black-forest-labs/FLUX.1-Fill-dev",
 ):
     torch_device = torch.device(device)
 
-    # Model selection and loading
-    name = "flux-dev-fill"
-
-    model, ae = get_models(
-        name,
-        device=torch_device,
-        offload=offload,
-    )
+    if use_quantized:
+        from vistadream.ops.flux import FluxInpainting, FluxInpaintingConfig
+        flux_inpainter = FluxInpainting(FluxInpaintingConfig(
+            use_quantized=True,
+            hf_model_id=hf_model_id,
+        ))
+        model, ae = None, None
+    else:
+        name = "flux-dev-fill"
+        model, ae = get_models(name, device=torch_device, offload=offload)
+        flux_inpainter = None
 
     def get_res(image, expansion_percent) -> Image.Image:
-        # For outpainting, we get just the image directly
-
-        # Apply more aggressive resizing to prevent memory issues
-        # Limit to 1024x1024 max resolution while preserving aspect ratio
         max_dimension = 1024
         width, height = image.size
         print(f"Original image size: {width}x{height}")
 
-        # Calculate scale factor to fit within max_dimension
         scale = min(max_dimension / width, max_dimension / height)
         if scale < 1.0:
             new_width = int(32 * round(width * scale / 32))
             new_height = int(32 * round(height * scale / 32))
             image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
         else:
-            # Still ensure dimensions are multiples of 32
             image = resize(image)
 
         width, height = image.size
         print(f"Resized image size: {width}x{height}")
 
-        # Auto-generate outpainting setup: user-controlled border expansion
-        border_percent = (
-            expansion_percent / 200.0
-        )  # Convert percentage to fraction per side (divide by 2 for each side, then by 100 for percentage)
+        border_percent = expansion_percent / 200.0
         print(f"Border expansion: {expansion_percent}% total ({border_percent * 100:.1f}% per side)")
         image, mask = add_border_and_mask(
             image,
@@ -210,41 +207,34 @@ def build_ui(
             overlap=0,
         )
 
-        width, height = image.size
-
-        output_dir = "./tmp"
-        os.makedirs(output_dir, exist_ok=True)
-        current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        tag = f"{current_time}_{random.randint(10000, 99999)}"
-        tmp_img = os.path.join(output_dir, f"{tag}_image.png")
-        tmp_mask = os.path.join(output_dir, f"{tag}_mask.png")
-
-        image.save(tmp_img)
-        mask.save(tmp_mask)
-
-        seed = 42
-
-        prompt = ""
-        num_steps = 25
-        guidance = 30.0
-
-        # Outpainting (using the same flux fill model)
         t0: float = time.perf_counter()
-        x = get_flux_fill_res(
-            tmp_img, tmp_mask, prompt, height, width, num_steps, guidance, model, ae, torch_device, seed, offload
-        )
+
+        if use_quantized:
+            img: Image.Image = flux_inpainter(
+                rgb_hw3=np.array(image.convert("RGB")),
+                mask=np.array(mask.convert("L")),
+            )
+        else:
+            output_dir = "./tmp"
+            os.makedirs(output_dir, exist_ok=True)
+            current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            tag = f"{current_time}_{random.randint(10000, 99999)}"
+            tmp_img = os.path.join(output_dir, f"{tag}_image.png")
+            tmp_mask = os.path.join(output_dir, f"{tag}_mask.png")
+            image.save(tmp_img)
+            mask.save(tmp_mask)
+
+            x = get_flux_fill_res(
+                tmp_img, tmp_mask, "", height, width, 25, 30.0, model, ae, torch_device, 42, offload
+            )
+            torch.cuda.empty_cache()
+            x_clamped: torch.Tensor = x.clamp(-1, 1)
+            x_rearranged: Float[torch.Tensor, "h w c"] = rearrange(x_clamped[0], "c h w -> h w c")
+            img_array: UInt8[np.ndarray, "h w c"] = (127.5 * (x_rearranged + 1.0)).cpu().byte().numpy()
+            img = Image.fromarray(img_array)
+
         t1: float = time.perf_counter()
-
         print(f"Done in {t1 - t0:.1f}s")
-
-        torch.cuda.empty_cache()
-
-        # Process and display result
-        x_clamped: torch.Tensor = x.clamp(-1, 1)
-        # x = embed_watermark(x.float())
-        x_rearranged: Float[torch.Tensor, "h w c"] = rearrange(x_clamped[0], "c h w -> h w c")
-        img_array: UInt8[np.ndarray, "h w c"] = (127.5 * (x_rearranged + 1.0)).cpu().byte().numpy()
-        img: Image.Image = Image.fromarray(img_array)
 
         return img
 
@@ -277,4 +267,10 @@ def build_ui(
 
 
 if __name__ == "__main__":
-    build_ui()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--use-quantized", action="store_true", help="Use NF4 quantized model via diffusers (~6-8GB VRAM)")
+    parser.add_argument("--hf-model-id", type=str, default="black-forest-labs/FLUX.1-Fill-dev", help="HuggingFace model ID for quantized loading")
+    parser.add_argument("--no-offload", action="store_true", help="Disable CPU offload (requires more VRAM)")
+    args = parser.parse_args()
+
+    build_ui(offload=not args.no_offload, use_quantized=args.use_quantized, hf_model_id=args.hf_model_id)

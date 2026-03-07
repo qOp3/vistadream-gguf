@@ -40,6 +40,7 @@ def log_frame(parent_log_path: Path, frame: Frame, cam_params: PinholeParameters
     inpaint_mask: Bool[np.ndarray, "H W"] = deepcopy(frame.inpaint)
     inpaint_wo_edge_mask: Bool[np.ndarray, "H W"] = deepcopy(frame.inpaint_wo_edge)
     depth_conf_mask: Bool[np.ndarray, "H W"] = deepcopy(frame.dpt_conf_mask)
+    hole_mask: Bool[np.ndarray, "H W"] | None = deepcopy(frame.hole_mask) if frame.hole_mask is not None else None
     # convert masked_depth to uint16 for depth image
     masked_depth_hw = (masked_depth_hw * 1000).astype(np.uint16)  # Convert to uint16 for depth image
 
@@ -57,6 +58,11 @@ def log_frame(parent_log_path: Path, frame: Frame, cam_params: PinholeParameters
         f"{pinhole_log_path}/inpaint_wo_edges_mask",
         rr.Image(inpaint_wo_edge_mask.astype(np.uint8) * 255, color_model=rr.ColorModel.L),
     )
+    if hole_mask is not None:
+        rr.log(
+            f"{pinhole_log_path}/hole_mask",
+            rr.Image(hole_mask.astype(np.uint8) * 255, color_model=rr.ColorModel.L),
+        )
     log_pinhole(camera=cam_params, cam_log_path=cam_log_path, image_plane_distance=0.05)
 
     if log_pcd:
@@ -89,6 +95,10 @@ class SingleImageConfig:
     n_frames: int = 10
     max_resolution: Literal[512, 1024, 1920] = 512
     stage: Literal["no-outpaint", "outpaint", "coarse", "fine"] = "no-outpaint"
+    disable_rerun: bool = False
+    use_quantized_flux: bool = False
+    flux_hf_model_id: str = "black-forest-labs/FLUX.1-Fill-dev"
+    flux_gguf_path: str | None = None
 
 
 def pose_to_frame(scene: Gaussian_Scene, cam_T_world: Float[np.ndarray, "4 4"], margin: int = 32) -> Frame:
@@ -138,7 +148,11 @@ class SingleImagePipeline:
         self.config: SingleImageConfig = config
         self.scene: Gaussian_Scene = Gaussian_Scene()
         if self.config.stage in ["outpaint", "coarse", "fine"]:
-            self.flux_inpainter: FluxInpainting = FluxInpainting(FluxInpaintingConfig())
+            self.flux_inpainter: FluxInpainting = FluxInpainting(FluxInpaintingConfig(
+                use_quantized=self.config.use_quantized_flux,
+                hf_model_id=self.config.flux_hf_model_id,
+                gguf_path=self.config.flux_gguf_path,
+            ))
         self.predictor: BaseRelativePredictor = get_relative_predictor("MogeV1Predictor")(device="cuda")
         self.smooth_connector: Smooth_Connect_Tool = Smooth_Connect_Tool()
         # Initialize rerun with the provided configuration
@@ -169,6 +183,8 @@ class SingleImagePipeline:
         save_dir.mkdir(exist_ok=True, parents=True)
         self._render_splats()
         save_ply(self.scene, gf_path)
+        print(f"[INFO] Scene PLY saved to: {gf_path.resolve()}")
+        self._export_hole_masks(save_dir)
 
     def _coarse(self):
         """
@@ -329,6 +345,17 @@ class SingleImagePipeline:
         print(f"[INFO] Inpainted frame with {np.sum(frame.inpaint)}/{frame.inpaint.size} inpaint pixels")
 
         return frame
+
+    def _export_hole_masks(self, save_dir: Path) -> None:
+        """Export hole masks for all frames as PNG images to save_dir/hole_masks/."""
+        mask_dir: Path = save_dir / "hole_masks"
+        mask_dir.mkdir(exist_ok=True, parents=True)
+        for i, frame in enumerate(self.scene.frames):
+            if frame.hole_mask is None:
+                continue
+            mask_uint8: np.ndarray = (frame.hole_mask.astype(np.uint8)) * 255
+            Image.fromarray(mask_uint8, mode="L").save(mask_dir / f"frame_{i:04d}_hole_mask.png")
+        print(f"[INFO] Exported hole masks to: {mask_dir.resolve()}")
 
     def _render_splats(self):
         # render 5times frames
@@ -580,6 +607,11 @@ class SingleImagePipeline:
         self.parent_log_path: Path = Path("/world")
         self.final_log_path: Path = Path("/final")
 
+        if self.config.disable_rerun:
+            rr.set_global_data_recording(None)
+            print("[INFO] Rerun disabled.")
+            return
+
         rr.send_blueprint(blueprint=self._create_blueprint())
         rr.log("/", rr.ViewCoordinates.RDF, static=True)
 
@@ -624,6 +656,11 @@ class SingleImagePipeline:
                             contents=["+ $origin/**"],
                             name=f"Camera {name_suffix} Inpaint w/o Edges",
                         ),
+                        rrb.Spatial2DView(
+                            origin=f"{self.parent_log_path}/camera_{i}/pinhole/hole_mask",
+                            contents=["+ $origin/**"],
+                            name=f"Camera {name_suffix} Hole Mask",
+                        ),
                     ),
                     row_shares=[9, 1],
                 )
@@ -658,6 +695,10 @@ class SingleImagePipeline:
                 f"- {self.parent_log_path}/camera_{cam}/pinhole/inpaint_wo_edges_mask"
                 for cam in initial_cameras + self.logged_cam_idx_list
             ],
+            *[
+                f"- {self.parent_log_path}/camera_{cam}/pinhole/hole_mask"
+                for cam in initial_cameras + self.logged_cam_idx_list
+            ],
         ]
 
         initialization_view = rrb.Horizontal(
@@ -687,6 +728,7 @@ class SingleImagePipeline:
             *[f"- {self.parent_log_path}/camera_{i}/pinhole/dpt_conf_mask" for i in self.logged_cam_idx_list + initial_cameras],
             *[f"- {self.parent_log_path}/camera_{i}/pinhole/inpaint_mask" for i in self.logged_cam_idx_list + initial_cameras],
             *[f"- {self.parent_log_path}/camera_{i}/pinhole/inpaint_wo_edges_mask" for i in self.logged_cam_idx_list + initial_cameras],
+            *[f"- {self.parent_log_path}/camera_{i}/pinhole/hole_mask" for i in self.logged_cam_idx_list + initial_cameras],
         ]
         # fmt: on
 

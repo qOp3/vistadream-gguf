@@ -48,6 +48,7 @@ class Frame:
     inpaint: Bool[ndarray, "H W"] | None = None
     inpaint_wo_edge: Bool[ndarray, "H W"] | None = None
     dpt_conf_mask: Bool[ndarray, "H W"] | None = None
+    hole_mask: Bool[ndarray, "H W"] | None = None
     intrinsic: Float[ndarray, "3 3"] | None = None
     cam_T_world: Float[ndarray, "4 4"] | None = None
     ideal_dpt: Float[ndarray, "H W"] | None = None
@@ -324,6 +325,8 @@ class Gaussian_Scene:
         # first render
         render_rgb, render_dpt, render_alpha = self._render_RGBD(frame)
         render_msk = alpha_inpaint_mask(render_alpha)
+        # compute hole mask: pixels with no geometry coverage (depth near zero)
+        hole_mask: Bool[np.ndarray, "H W"] = (render_dpt < 1e-3).detach().cpu().numpy()
         # to numpy
         render_rgb = render_rgb.detach().cpu().numpy()
         render_dpt = render_dpt.detach().cpu().numpy()
@@ -332,6 +335,7 @@ class Gaussian_Scene:
         frame.rgb = render_rgb
         frame.dpt = render_dpt
         frame.inpaint = render_msk
+        frame.hole_mask = hole_mask
         return frame
 
     def _add_trainable_frame(self, frame: Frame, require_grad: bool = True) -> None:
