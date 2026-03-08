@@ -1,0 +1,30 @@
+gguf 模型
+pixi run python tools/gradio_app.py \
+  --gguf-path ckpt/flux_fill/flux1-fill-dev-Q6_K.gguf
+
+
+pixi run python tools/run_single_img.py \
+  --image-path data/office/IMG_4029.jpg \
+  --stage coarse \
+  --flux-gguf-path ckpt/flux_fill/flux1-fill-dev-Q6_K.gguf
+  --disable-rerun
+
+stage: 
+    no-outpaint：不用 flux，只做深度预测 + 3DGS（默认）
+    outpaint：用 flux 扩展图像边界，不生成多帧
+    coarse：用 flux outpaint + 逐帧 inpainting 构建完整 coarse 场景
+
+pixi run python tools/run_single_img.py \
+  --image-path data/aihouse.png \
+  --stage no-outpaint \
+  --disable-rerun
+注意 no-outpaint 模式不使用 Flux，所以不需要 --flux-gguf-path。
+
+
+# 默认值 0.1，保留更多点（宽松）
+pixi run python tools/run_single_img.py \
+  --image-path data/aihouse.png \
+  --stage coarse \
+  --flux-gguf-path ckpt/flux_fill/flux1-fill-dev-Q6_K.gguf \
+  --disable-rerun \
+  --depth-edge-threshold 0.05   # 更严格，保留更少的边界点

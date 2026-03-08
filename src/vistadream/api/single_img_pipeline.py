@@ -35,7 +35,7 @@ def log_frame(parent_log_path: Path, frame: Frame, cam_params: PinholeParameters
     # extract values from frame
     rgb_hw3: UInt8[np.ndarray, "H W 3"] = (deepcopy(frame.rgb) * 255).astype(np.uint8)
     depth_hw: Float[np.ndarray, "H W"] = deepcopy(frame.dpt)
-    edges_mask: Bool[np.ndarray, "h w"] = depth_edges_mask(depth_hw, threshold=0.01)
+    edges_mask: Bool[np.ndarray, "h w"] = depth_edges_mask(depth_hw, threshold=0.1)
     masked_depth_hw: Float[np.ndarray, "h w"] = depth_hw * ~edges_mask
     inpaint_mask: Bool[np.ndarray, "H W"] = deepcopy(frame.inpaint)
     inpaint_wo_edge_mask: Bool[np.ndarray, "H W"] = deepcopy(frame.inpaint_wo_edge)
@@ -99,6 +99,7 @@ class SingleImageConfig:
     use_quantized_flux: bool = False
     flux_hf_model_id: str = "black-forest-labs/FLUX.1-Fill-dev"
     flux_gguf_path: str | None = None
+    depth_edge_threshold: float = 0.1
 
 
 def pose_to_frame(scene: Gaussian_Scene, cam_T_world: Float[np.ndarray, "4 4"], margin: int = 32) -> Frame:
@@ -175,16 +176,21 @@ class SingleImagePipeline:
         # outpaint -> depth prediction -> scene generation
         self._initialize()
         # generate the coarse scene
-        if self.config.stage == "coarse":
-            self._coarse()
-        # save the scene
-        save_dir: Path = Path("data/test_dir/")
-        gf_path: Path = save_dir / "gf.ply"
-        save_dir.mkdir(exist_ok=True, parents=True)
-        self._render_splats()
-        save_ply(self.scene, gf_path)
-        print(f"[INFO] Scene PLY saved to: {gf_path.resolve()}")
-        self._export_hole_masks(save_dir)
+        try:
+            if self.config.stage == "coarse":
+                self._coarse()
+        except Exception as e:
+            print(f"[WARN] Coarse stage interrupted: {e}. Saving current scene.")
+        finally:
+            # save whatever scene has been built so far
+            save_dir: Path = Path("data/test_dir/")
+            gf_path: Path = save_dir / "gf.ply"
+            save_dir.mkdir(exist_ok=True, parents=True)
+            if not self.config.disable_rerun:
+                self._render_splats()
+            save_ply(self.scene, gf_path)
+            print(f"[INFO] Scene PLY saved to: {gf_path.resolve()}")
+            self._export_hole_masks(save_dir)
 
     def _coarse(self):
         """
@@ -229,7 +235,8 @@ class SingleImagePipeline:
             # Add frame to scene and optimize
             self.scene._add_trainable_frame(inpainted_frame, require_grad=True)
             self.scene: Gaussian_Scene = GS_Train_Tool(self.scene, iters=500)(self.scene.frames, log=False)
-            rr.send_blueprint(blueprint=self._create_blueprint(tab_idx=1))
+            if not self.config.disable_rerun:
+                rr.send_blueprint(blueprint=self._create_blueprint(tab_idx=1))
 
     def _next_frame(
         self, dense_cam_T_world_traj: Float[np.ndarray, "n_frames 4 4"], select_frames: list[int], margin: int = 32
@@ -256,8 +263,8 @@ class SingleImagePipeline:
 
         inpaint_area_ratio_array: Float[np.ndarray, "n_frames"] = np.array(inpaint_area_ratios, dtype=np.float32)
 
-        # Filter out frames with too much inpainting (> 25%)
-        inpaint_area_ratio_array[inpaint_area_ratio_array > 0.25] = 0.0
+        # Filter out frames with too much inpainting (> 60%)
+        inpaint_area_ratio_array[inpaint_area_ratio_array > 0.60] = 0.0
 
         # Remove adjacent frames to already selected ones
         for selected_idx in select_frames:
@@ -329,7 +336,7 @@ class SingleImagePipeline:
         frame.dpt = aligned_depth_hw
 
         # Calculate depth edges mask using aligned depth
-        edges_mask: Bool[np.ndarray, "H W"] = depth_edges_mask(aligned_depth_hw, threshold=0.01)
+        edges_mask: Bool[np.ndarray, "H W"] = depth_edges_mask(aligned_depth_hw, threshold=self.config.depth_edge_threshold)
 
         # Update inpaint mask without edges
         frame.inpaint_wo_edge = frame.inpaint & ~edges_mask
@@ -440,7 +447,7 @@ class SingleImagePipeline:
 
             # convert to numpy arrays
             outpaint_mask: Bool[np.ndarray, "H W"] = np.array(outpaint_mask).astype(np.bool_)
-            outpaint_edges_mask: Bool[np.ndarray, "H W"] = depth_edges_mask(outpaint_depth_hw, threshold=0.01)
+            outpaint_edges_mask: Bool[np.ndarray, "H W"] = depth_edges_mask(outpaint_depth_hw, threshold=self.config.depth_edge_threshold)
             # inpaint/outpaint mask without edges (True where inpainting is applied, False near edges and where no inpainting)
             outpaint_wo_edges: Bool[np.ndarray, "H W"] = outpaint_mask & ~outpaint_edges_mask
             # final mask
@@ -479,7 +486,7 @@ class SingleImagePipeline:
             # mask showing where outpainting (inpainting) is applied
             outpaint_mask: Bool[np.ndarray, "H W"] = np.array(outpaint_mask).astype(np.bool_)
             # depth edges, True near edges, False otherwise
-            outpaint_edges_mask: Bool[np.ndarray, "H W"] = depth_edges_mask(outpaint_depth_hw, threshold=0.01)
+            outpaint_edges_mask: Bool[np.ndarray, "H W"] = depth_edges_mask(outpaint_depth_hw, threshold=self.config.depth_edge_threshold)
             # inpaint/outpaint mask without edges (True where inpainting is applied, False near edges and where no inpainting)
             outpaint_wo_edges: Bool[np.ndarray, "H W"] = outpaint_mask & ~outpaint_edges_mask
             # final mask
@@ -608,7 +615,10 @@ class SingleImagePipeline:
         self.final_log_path: Path = Path("/final")
 
         if self.config.disable_rerun:
-            rr.set_global_data_recording(None)
+            try:
+                rr.init(self.config.rr_config.application_id, default_enabled=False, spawn=False)
+            except RuntimeError:
+                pass  # ignore stale gRPC connection from previous session
             print("[INFO] Rerun disabled.")
             return
 

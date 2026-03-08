@@ -164,14 +164,16 @@ def build_ui(
     offload: bool = True,
     use_quantized: bool = False,
     hf_model_id: str = "black-forest-labs/FLUX.1-Fill-dev",
+    gguf_path: str | None = None,
 ):
     torch_device = torch.device(device)
 
-    if use_quantized:
+    if gguf_path is not None or use_quantized:
         from vistadream.ops.flux import FluxInpainting, FluxInpaintingConfig
         flux_inpainter = FluxInpainting(FluxInpaintingConfig(
-            use_quantized=True,
+            use_quantized=use_quantized,
             hf_model_id=hf_model_id,
+            gguf_path=gguf_path,
         ))
         model, ae = None, None
     else:
@@ -209,7 +211,7 @@ def build_ui(
 
         t0: float = time.perf_counter()
 
-        if use_quantized:
+        if flux_inpainter is not None:
             img: Image.Image = flux_inpainter(
                 rgb_hw3=np.array(image.convert("RGB")),
                 mask=np.array(mask.convert("L")),
@@ -271,6 +273,7 @@ if __name__ == "__main__":
     parser.add_argument("--use-quantized", action="store_true", help="Use NF4 quantized model via diffusers (~6-8GB VRAM)")
     parser.add_argument("--hf-model-id", type=str, default="black-forest-labs/FLUX.1-Fill-dev", help="HuggingFace model ID for quantized loading")
     parser.add_argument("--no-offload", action="store_true", help="Disable CPU offload (requires more VRAM)")
+    parser.add_argument("--gguf-path", type=str, default=None, help="Path to local GGUF quantized model file")
     args = parser.parse_args()
 
-    build_ui(offload=not args.no_offload, use_quantized=args.use_quantized, hf_model_id=args.hf_model_id)
+    build_ui(offload=not args.no_offload, use_quantized=args.use_quantized, hf_model_id=args.hf_model_id, gguf_path=args.gguf_path)
