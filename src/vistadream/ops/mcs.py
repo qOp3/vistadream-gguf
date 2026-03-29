@@ -2,8 +2,6 @@ import numpy as np
 import torch
 import torchvision.transforms as tvtf
 
-from tools.StableDiffusion.Hack_SD_stepwise import Hack_SDPipe_Stepwise
-
 """
 Input: Multiview images with added noise
 denoise to x0
@@ -44,7 +42,11 @@ class HackSD_MCS:
         self.timesteps = self.model.timesteps
 
     def _load_model(self):
-        self.model = Hack_SDPipe_Stepwise.from_pretrained(self.sd_ckpt)
+        from vistadream.ops.hack_sd_stepwise import Hack_SDPipe_Stepwise
+        if self.sd_ckpt.endswith(".safetensors") or self.sd_ckpt.endswith(".ckpt"):
+            self.model = Hack_SDPipe_Stepwise.from_single_file(self.sd_ckpt)
+        else:
+            self.model = Hack_SDPipe_Stepwise.from_pretrained(self.sd_ckpt)
         self.model._use_lcm(self.use_lcm, self.lcm_ckpt)
         self.model.re_init(num_inference_steps=50)
         try:

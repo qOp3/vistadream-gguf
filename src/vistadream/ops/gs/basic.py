@@ -54,6 +54,7 @@ class Frame:
     ideal_dpt: Float[ndarray, "H W"] | None = None
     ideal_nml: Float[ndarray, "H W 3"] | None = None
     keep: bool = False  # for keep supervision
+    prompt: str = ""  # text prompt for diffusion guidance
 
     def __post_init__(self):
         self._rgb_rect()

@@ -28,3 +28,10 @@ pixi run python tools/run_single_img.py \
   --flux-gguf-path ckpt/flux_fill/flux1-fill-dev-Q6_K.gguf \
   --disable-rerun \
   --depth-edge-threshold 0.05   # 更严格，保留更少的边界点
+
+# fine
+pixi run python tools/run_single_img.py \
+    --image-path data/office/IMG_4029.jpg \
+    --stage fine \
+    --mcs-sd-ckpt tools/StableDiffusion/ckpt \
+    --mcs-prompt "a scenic indoor office view"

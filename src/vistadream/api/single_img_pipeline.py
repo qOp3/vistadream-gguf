@@ -24,6 +24,7 @@ from simplecv.rerun_log_utils import RerunTyroConfig, log_pinhole
 from vistadream.ops.connect import Smooth_Connect_Tool
 from vistadream.ops.flux import FluxInpainting, FluxInpaintingConfig
 from vistadream.ops.gs.basic import Frame, Gaussian_Scene, save_ply
+from vistadream.ops.gs.refine import Refinement_Tool_MCS
 from vistadream.ops.gs.train import GS_Train_Tool
 from vistadream.ops.trajs import _generate_trajectory
 from vistadream.resize_utils import add_border_and_mask, process_image
@@ -100,6 +101,14 @@ class SingleImageConfig:
     flux_hf_model_id: str = "black-forest-labs/FLUX.1-Fill-dev"
     flux_gguf_path: str | None = None
     depth_edge_threshold: float = 0.1
+    # fine stage (MCS refinement) config
+    mcs_n_view: int = 8
+    mcs_rect_w: float = 0.7
+    mcs_n_gsopt_iters: int = 256
+    mcs_sd_ckpt: str = "tools/StableDiffusion/ckpt/v1-5-pruned.safetensors"
+    mcs_lcm_ckpt: str = "latent-consistency/lcm-lora-sdv1-5"
+    mcs_denoise_steps: int = 20
+    mcs_prompt: str = ""
 
 
 def pose_to_frame(scene: Gaussian_Scene, cam_T_world: Float[np.ndarray, "4 4"], margin: int = 32) -> Frame:
@@ -154,6 +163,14 @@ class SingleImagePipeline:
                 hf_model_id=self.config.flux_hf_model_id,
                 gguf_path=self.config.flux_gguf_path,
             ))
+        if self.config.stage == "fine":
+            from vistadream.ops.mcs import HackSD_MCS
+            self.mcs_refiner = HackSD_MCS(
+                device="cuda",
+                denoise_steps=self.config.mcs_denoise_steps,
+                sd_ckpt=self.config.mcs_sd_ckpt,
+                lcm_ckpt=self.config.mcs_lcm_ckpt,
+            )
         self.predictor: BaseRelativePredictor = get_relative_predictor("MogeV1Predictor")(device="cuda")
         self.smooth_connector: Smooth_Connect_Tool = Smooth_Connect_Tool()
         # Initialize rerun with the provided configuration
@@ -177,10 +194,12 @@ class SingleImagePipeline:
         self._initialize()
         # generate the coarse scene
         try:
-            if self.config.stage == "coarse":
+            if self.config.stage in ["coarse", "fine"]:
                 self._coarse()
+            if self.config.stage == "fine":
+                self._fine()
         except Exception as e:
-            print(f"[WARN] Coarse stage interrupted: {e}. Saving current scene.")
+            print(f"[WARN] Stage interrupted: {e}. Saving current scene.")
         finally:
             # save whatever scene has been built so far
             save_dir: Path = Path("data/test_dir/")
@@ -191,6 +210,19 @@ class SingleImagePipeline:
             save_ply(self.scene, gf_path)
             print(f"[INFO] Scene PLY saved to: {gf_path.resolve()}")
             self._export_hole_masks(save_dir)
+
+    def _export_frame(self, frame: Frame, name: str) -> None:
+        """Save frame RGB and depth map as PNG files to data/test_dir/frames/."""
+        frames_dir: Path = Path("data/test_dir/frames")
+        frames_dir.mkdir(exist_ok=True, parents=True)
+
+        rgb_uint8: UInt8[np.ndarray, "H W 3"] = (frame.rgb * 255).astype(np.uint8)
+        Image.fromarray(rgb_uint8, mode="RGB").save(frames_dir / f"{name}_rgb.png")
+
+        depth_uint16: np.ndarray = (frame.dpt * 1000).astype(np.uint16)
+        Image.fromarray(depth_uint16, mode="I;16").save(frames_dir / f"{name}_depth.png")
+
+        print(f"[INFO] Exported frame '{name}' to: {frames_dir.resolve()}")
 
     def _coarse(self):
         """
@@ -222,6 +254,7 @@ class SingleImagePipeline:
 
             # Inpaint the selected frame
             inpainted_frame: Frame = self._inpaint_next_frame(next_frame)
+            self._export_frame(inpainted_frame, f"frame_{cam_idx:04d}_coarse")
             cam_params: PinholeParameters = PinholeParameters(
                 name=f"camera_{cam_idx}",
                 intrinsics=self.shared_intrinsics,
@@ -237,6 +270,29 @@ class SingleImagePipeline:
             self.scene: Gaussian_Scene = GS_Train_Tool(self.scene, iters=500)(self.scene.frames, log=False)
             if not self.config.disable_rerun:
                 rr.send_blueprint(blueprint=self._create_blueprint(tab_idx=1))
+
+    def _fine(self) -> None:
+        """
+        Fine-stage: refine the coarse Gaussian scene using diffusion-guided
+        multi-view consistent score (MCS) optimization.
+        """
+        print("[INFO] Starting fine stage (MCS refinement)...")
+        # mark frames that should be kept as supervision anchors
+        for frame in self.scene.frames:
+            frame.keep = True
+        # propagate prompt to the last frame for diffusion guidance
+        if self.config.mcs_prompt:
+            self.scene.frames[-1].prompt = self.config.mcs_prompt
+        refine_tool = Refinement_Tool_MCS(
+            coarse_GS=self.scene,
+            device="cuda",
+            refiner=self.mcs_refiner,
+            n_view=self.config.mcs_n_view,
+            rect_w=self.config.mcs_rect_w,
+            n_gsopt_iters=self.config.mcs_n_gsopt_iters,
+        )
+        self.scene = refine_tool()
+        print("[INFO] Fine stage completed.")
 
     def _next_frame(
         self, dense_cam_T_world_traj: Float[np.ndarray, "n_frames 4 4"], select_frames: list[int], margin: int = 32
@@ -526,6 +582,7 @@ class SingleImagePipeline:
             log_frame(
                 parent_log_path=self.parent_log_path, frame=outpaint_frame, cam_params=outpaint_pinhole, log_pcd=True
             )
+            self._export_frame(outpaint_frame, "frame_0000_outpaint")
             self.scene._add_trainable_frame(outpaint_frame, require_grad=True)
 
         input_rgb_hw3: UInt8[np.ndarray, "H W 3"] = np.array(input_image.convert("RGB"))
@@ -606,6 +663,7 @@ class SingleImagePipeline:
         )
 
         log_frame(parent_log_path=self.parent_log_path, frame=input_frame, cam_params=input_pinhole)
+        self._export_frame(input_frame, "frame_0001_input")
         self.scene._add_trainable_frame(input_frame, require_grad=True)
 
         self.scene: Gaussian_Scene = GS_Train_Tool(self.scene, iters=100)(self.scene.frames, log=False)
